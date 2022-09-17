@@ -236,3 +236,5 @@ class CYPHER_CONNECTION() :
         except Exception as EXCEPTION : print(EXCEPTION)
         try : del self.SERVER_OBJECT
         except Exception as EXCEPTION : print(EXCEPTION)
+        try : del self.REQUEST_HANDLE_TRIGGER
+        except Exception as EXCEPRION : print(EXCEPTION)
