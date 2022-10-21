@@ -11,11 +11,11 @@
 
 # ISSUES WITH OTHER PROTOCOLS
 
-* Other protocols give errors when some error occurs and we have to handle it manually to remove it or to continue the process in the same sequence but CYPHER_PROTOCOL does that error handling automatically and the users are more free to focus on the flow instead of error handling.
+* Other protocols give errors when some error occurs and we have to handle it manually to remove it or to continue the process in the same sequence but CYPHER_PROTOCOL does that error handling automatically and the programmers are more free to focus on the flow instead of error handling.
 
 * Whenever some error occurs in recieving data or sending data it resolves it automatically.
 
-* Whenever it notices a disconnection from server it automatically connects to the server.
+* Whenever it notices a disconnection from server it automatically re-connects to the server.
 
 # COMPATIBLITY
 
@@ -51,9 +51,9 @@
 * But it can also be modified as per needs
 
 * "PATH" is like the path we see in http protocol and here it is "/" by default
-* "OPERATION" is operation we have to perform like "UPDATE", "DELETE", "READ", "CREATE" etc. Also you can create your own type of operation if u want to its just for convenience
-* "DATA" contains data that u wanna share between the server and the client
-* "METADATA" contains data that u may need to use, its completely optional
+* "OPERATION" is operation we have to perform like "UPDATE", "DELETE", "READ", "CREATE" etc. Also you can create your own type of operation if you want to, its just for convenience
+* "DATA" contains data that you want to share between the server and the client
+* "METADATA" contains data that you may need to use, its completely optional
 
 ## SERVER
 
