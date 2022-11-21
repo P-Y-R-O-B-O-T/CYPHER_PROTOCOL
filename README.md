@@ -27,7 +27,7 @@
 
 > Install it using pip.
 
-* Goto [PYPI](https://pypi.org/project/cypher-protocol-P-Y-R-O-B-O-T/1.0.6/)
+* Goto [PYPI](https://pypi.org/project/cypher-protocol-P-Y-R-O-B-O-T/)
 
 # HOW TO USE ?
 
