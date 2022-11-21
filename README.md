@@ -3,7 +3,7 @@
 ![](ZZZ/ZZZ.jpg)
 
 * [PROJECT LINK GITHUB](https://github.com/P-Y-R-O-B-O-T/CYPHER_PROTOCOL)
-* [PROJECT LINK PYPI](https://pypi.org/project/cypher-protocol-P-Y-R-O-B-O-T/1.0.6/)
+* [PROJECT LINK PYPI](https://pypi.org/project/cypher-protocol-P-Y-R-O-B-O-T/)
 
 * This is a type of communication protocol made for computers using TCP sockets.
 
