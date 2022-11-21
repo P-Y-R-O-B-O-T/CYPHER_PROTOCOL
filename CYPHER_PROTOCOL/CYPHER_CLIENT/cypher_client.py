@@ -46,6 +46,8 @@ class CYPHER_CLIENT() :
         if self.CONNECTED == True :
             self.CONNECTION.close()
             del self.CONNECTION
+        self.signalize_offline()
+
         self.CONNECTED = False
 
         #print("[*] TRYING TO CONNECT TO SERVER")
@@ -68,6 +70,8 @@ class CYPHER_CLIENT() :
 
         GC.collect()
         GC.enable()
+
+        self.signalize_online()
 
         if self.CONNECTED :
 
@@ -147,11 +151,11 @@ class CYPHER_CLIENT() :
         #print("[~] CONNECTION CLOSED")
 
     def signalize_offline(self) -> None :
-        if self.CONNECTED != False :
+        if self.CONNECTED == True :
             if self.OFFLINE_SIGNAL_PROCESSOR != None :
                 self.OFFLINE_SIGNAL_PROCESSOR()
 
     def signalize_online(self) -> None :
-        if self.CONNECTED != True :
+        if self.CONNECTED == True :
             if self.ONLINE_SIGNAL_PROCESSOR != None :
                 self.ONLINE_SIGNAL_PROCESSOR()
