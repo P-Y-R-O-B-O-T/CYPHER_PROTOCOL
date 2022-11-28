@@ -31,7 +31,7 @@ class CYPHER_SERVER() :
 
         self.REQUEST_HANDLER = request_handler
 
-        self.self.print_debug("[*] CREATING ENCRYPTION AND DECRYPTION OBJECTS", self.DEBUG1)
+        self.print_debug("[*] CREATING ENCRYPTION AND DECRYPTION OBJECTS", self.DEBUG1)
 
         self.ENCRYPTION_KEY = encryption_key
         self.DECRYPTION_KEY = decryption_key
@@ -54,7 +54,7 @@ class CYPHER_SERVER() :
             self.SERVER_SOCKET.bind(("", self.SERVER_PORT))
 
             self.print_debug("[*] BINDED SERVER SOCKET TO IP AND PORT", self.DEBUG1)
-            self.print_debug("[*] SERVER OPEN ON PORT {0}".format(self.PORT), self.DEBUG1)
+            self.print_debug("[*] SERVER OPEN ON PORT {0}".format(self.SERVER_PORT), self.DEBUG1)
 
         except Exception as EXCEPTION:
 
@@ -143,7 +143,7 @@ class CYPHER_SERVER() :
             except :
                 pass
 
-    def print_debug(debug, debug_status) :
+    def print_debug(self, debug, debug_status) :
         if debug_status :
             print(debug)
 
@@ -248,6 +248,6 @@ class CYPHER_CONNECTION() :
         try : del self.REQUEST_HANDLE_TRIGGER
         except Exception as EXCEPRION : print(EXCEPTION)
 
-    def print_debug(debug, debug_status) :
+    def print_debug(self, debug, debug_status) :
         if debug_status :
             print(debug)

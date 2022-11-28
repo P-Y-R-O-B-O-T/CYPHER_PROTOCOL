@@ -33,7 +33,7 @@
 
 * Encryption key is a 32 character encryption key for the server and decryption key for client
 * Decryption key is a 32 character decryption key for server and encryption key for the client
-* Altough encryption and decryption key can be kept same for any reason
+* Although encryption and decryption key can be kept same for any reason
 * request_processor in server initialisation is a method/function that user have to define and it is used to process the request recieved from client
 * responce_processor in client initialisation is a method/function that user have to define and it is used to process the responce recieved from server
 
@@ -93,7 +93,7 @@ def request_processor(data: dict, ip_port: tuple) -> dict :
             responce["DATA"] = NUMBER
             return responce
 
-SERVER_OBJECT = CYPHER_SERVER(12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", request_processor)
+SERVER_OBJECT = CYPHER_SERVER(12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", request_processor, debug1=True, debug2=True)
 SERVER_OBJECT.start_server()
 
 time.sleep(60*5)
@@ -111,6 +111,12 @@ from CYPHER_PROTOCOL.CYPHER_CLIENT.cypher_client import CYPHER_CLIENT
 
 def responce_processor(responce: dict) :
     print(responce)
+
+def online_sig_processor() :
+    print("You are online")
+
+def offline_sig_processor() :
+    print("You are offline")
 
 def request_maker() :
     global CLIENT_OBJECT
@@ -137,7 +143,7 @@ def request_maker() :
 
         CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], metadata = request["METADATA"])
 
-CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", responce_processor)
+CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", responce_processor, offline_signal_processor=offline_sig_processor, online_signal_processor=online_sig_processor)
 
 CLIENT_OBJECT.connect()
 
