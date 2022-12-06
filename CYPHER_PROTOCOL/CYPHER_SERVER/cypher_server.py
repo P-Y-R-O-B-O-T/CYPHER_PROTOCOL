@@ -164,7 +164,7 @@ class CYPHER_CONNECTION() :
 
         self.create_encryption_decryption_objects(encryption_key, decryption_key)
 
-        self.CONNECTION.settimeout(60)
+        self.CONNECTION.settimeout(60*2)
 
         self.CONNECTION_THREAD = threading.Thread(target=self.connection_loop, args=())
 
@@ -188,7 +188,7 @@ class CYPHER_CONNECTION() :
         client_resp = [""]
         while self.CONNECTION_STATUS :
             try :
-                temp_resp = self.CONNECTION.recv(1024*1024).decode("utf-8")
+                temp_resp = self.CONNECTION.recv(1024*1024*8).decode("utf-8")
                 client_resp[0] += temp_resp
                 if chr(0) in client_resp[0] :
                     self.process_request(client_resp)
@@ -217,7 +217,9 @@ class CYPHER_CONNECTION() :
 
         self.print_debug("[#] SENDING DATA TO CONNECTION {0}".format(self.IP_PORT), self.DEBUG)
 
-        self.CONNECTION.send(bytes(responce_for_client_encrypted.decode("ascii")+chr(0), "utf-8"))
+        responce = bytes(responce_for_client_encrypted.decode("ascii")+chr(0), "utf-8")
+        for _ in range(0, len(responce), 1024*1024*2) :
+            self.CONNECTION.send(responce[_:_+1024*1024*2])
 
         self.print_debug("[#] DATA SENT TO {0}".format(self.IP_PORT), self.DEBUG)
 

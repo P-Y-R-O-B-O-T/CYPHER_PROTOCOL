@@ -94,7 +94,9 @@ class CYPHER_CLIENT() :
             #print("[@] SENDING REQUEST")
 
             try :
-                self.CONNECTION.send(bytes(data_encrypted.decode(encoding="ascii")+chr(0), "utf-8"))
+                request = bytes(data_encrypted.decode(encoding="ascii")+chr(0), "utf-8")
+                for _ in range(0, len(request), 1024*1024*2) :
+                    self.CONNECTION.send(request[_:_+1024*2])
             except :
                 self.connect()
                 continue
@@ -109,7 +111,7 @@ class CYPHER_CLIENT() :
 
             while chr(0) not in server_resp[0] :
                 try :
-                    temp_resp = self.CONNECTION.recv(1024*1024).decode("utf-8")
+                    temp_resp = self.CONNECTION.recv(1024*1024*8).decode("utf-8")
                     if temp_resp != "" :
                         server_resp[0] += temp_resp
                     if temp_resp == "" :
