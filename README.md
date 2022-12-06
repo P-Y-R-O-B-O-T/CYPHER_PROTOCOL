@@ -93,10 +93,10 @@ def request_processor(data: dict, ip_port: tuple) -> dict :
             responce["DATA"] = NUMBER
             return responce
 
-SERVER_OBJECT = CYPHER_SERVER(12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", request_processor, debug1=True, debug2=True)
+SERVER_OBJECT = CYPHER_SERVER(12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", request_handler=request_processor, recv_buffer=1024*1024*8, tranamission_buffer=1024*1024*2, timeout=120, debug1=True, debug2=True)
 SERVER_OBJECT.start_server()
 
-time.sleep(60*5)
+input()
 
 SERVER_OBJECT.stop_server()
 ```
@@ -143,7 +143,7 @@ def request_maker() :
 
         CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], metadata = request["METADATA"])
 
-CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", responce_processor, offline_signal_processor=offline_sig_processor, online_signal_processor=online_sig_processor)
+CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", responce_processor, offline_signal_processor=offline_sig_processor, online_signal_processor=online_sig_processor, recv_buffer=1024*1024*8, tranamission_buffer=1024*1024*2, timeout=60)
 
 CLIENT_OBJECT.connect()
 
