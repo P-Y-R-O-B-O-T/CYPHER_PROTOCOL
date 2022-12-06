@@ -12,7 +12,7 @@ import traceback
 #$$$$$$$$$$#
 
 class CYPHER_CLIENT() :
-    def __init__(self, ip: str, port: int, encryption_key: str, decryption_key: str, responce_handler: object, offline_signal_processor: object = None, online_signal_processor: object = None) :
+    def __init__(self, ip: str, port: int, encryption_key: str, decryption_key: str, responce_handler: object, offline_signal_processor: object = None, online_signal_processor: object = None, recv_buffer: int = 1024*1024*8, transmission_buffer: int = 1024*1024*2, timeout: int = 60) :
 
         #print("[*] INITIALISING CYPHER CLIENT")
 
@@ -25,6 +25,11 @@ class CYPHER_CLIENT() :
         self.RESPONCE_HANDLE_TRIGGER = responce_handler
         self.OFFLINE_SIGNAL_PROCESSOR = offline_signal_processor
         self.ONLINE_SIGNAL_PROCESSOR = online_signal_processor
+
+        self.RECV_BUFFER = recv_buffer
+        self.TRANSMISSION_BUFFER = transmission_buffer
+
+        self.TIMEOUT = timeout
 
         self.LOCK = threading.Lock()
 
@@ -57,7 +62,7 @@ class CYPHER_CLIENT() :
                 try :
                     self.CONNECTION = socket.socket()
                     self.CONNECTION.connect((self.IP, self.PORT))
-                    self.CONNECTION.settimeout(60)
+                    self.CONNECTION.settimeout(self.TIMEOUT)
                     self.CONNECTED = True
                 except Exception as EXCEPTION :
 
@@ -95,8 +100,8 @@ class CYPHER_CLIENT() :
 
             try :
                 request = bytes(data_encrypted.decode(encoding="ascii")+chr(0), "utf-8")
-                for _ in range(0, len(request), 1024*1024*2) :
-                    self.CONNECTION.send(request[_:_+1024*2])
+                for _ in range(0, len(request), self.TRANSMISSION_BUFFER) :
+                    self.CONNECTION.send(request[_:_+self.TRANSMISSION_BUFFER])
             except :
                 self.connect()
                 continue
@@ -111,7 +116,7 @@ class CYPHER_CLIENT() :
 
             while chr(0) not in server_resp[0] :
                 try :
-                    temp_resp = self.CONNECTION.recv(1024*1024*8).decode("utf-8")
+                    temp_resp = self.CONNECTION.recv(self.RECV_BUFFER).decode("utf-8")
                     if temp_resp != "" :
                         server_resp[0] += temp_resp
                     if temp_resp == "" :
