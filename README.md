@@ -75,25 +75,42 @@ def request_processor(data: dict, ip_port: tuple) -> dict :
             SEQUENCE.append(data["DATA"])
             if len(SEQUENCE) > 10 :
                 SEQUENCE.pop(0)
-            responce = {"PATH": data["PATH"], "OPERATION": data["OPERATION"], "METADATA": data["METADATA"]}
+            responce = {"PATH": data["PATH"],
+                        "OPERATION": data["OPERATION"],
+                        "METADATA": data["METADATA"]}
             responce["DATA"] = "UPDATED"
             return responce
         elif data["OPERATION"] == "READ" :
-            responce = {"PATH": data["PATH"], "OPERATION": data["OPERATION"], "METADATA": data["METADATA"]}
+            responce = {"PATH": data["PATH"],
+                        "OPERATION": data["OPERATION"],
+                        "METADATA": data["METADATA"]}
             responce["DATA"] = SEQUENCE
             return responce
     elif data["PATH"] == "/NUMBER" :
         if data["OPERATION"] == "UPDATE" :
             NUMBER = data["DATA"]
-            responce = {"PATH": data["PATH"], "OPERATION": data["OPERATION"], "METADATA": data["METADATA"]}
+            responce = {"PATH": data["PATH"],
+                        "OPERATION": data["OPERATION"],
+                        "METADATA": data["METADATA"]}
             responce["DATA"] = "UPDATED"
             return responce
         elif data["OPERATION"] == "READ" :
-            responce = {"PATH": data["PATH"], "OPERATION": data["OPERATION"], "METADATA": data["METADATA"]}
+            responce = {"PATH": data["PATH"],
+                        "OPERATION": data["OPERATION"],
+                        "METADATA": data["METADATA"]}
             responce["DATA"] = NUMBER
             return responce
 
-SERVER_OBJECT = CYPHER_SERVER(12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", request_handler=request_processor, recv_buffer=1024*1024*8, tranamission_buffer=1024*1024*2, timeout=120, debug1=True, debug2=True)
+SERVER_OBJECT = CYPHER_SERVER(12345,
+                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              request_handler=request_processor,
+                              recv_buffer=1024*1024*8,
+                              tranamission_buffer=1024*1024*2,
+                              timeout=120,
+                              debug1=True,
+                              debug2=True)
+
 SERVER_OBJECT.start_server()
 
 input()
@@ -121,29 +138,49 @@ def offline_sig_processor() :
 def request_maker() :
     global CLIENT_OBJECT
     while True :
-        request = {"PATH": "/SEQUENCE", "OPERATION": "UPDATE", "DATA": random.randint(0,1000), "METADATA": {}}
+        request = {"PATH": "/SEQUENCE", "OPERATION": "UPDATE",
+                   "DATA": random.randint(0,1000), "METADATA": {}}
 
-        CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], data = request["DATA"], metadata = request["METADATA"])
+        CLIENT_OBJECT.make_request(path=request["PATH"],
+                                   operation=request["OPERATION"],
+                                   data=request["DATA"],
+                                   metadata=request["METADATA"])
 
         time.sleep(1)
 
         request = {"PATH": "/SEQUENCE", "OPERATION": "READ", "METADATA": {}}
 
-        CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], metadata = request["METADATA"])
+        CLIENT_OBJECT.make_request(path=request["PATH"],
+                                   operation=request["OPERATION"],
+                                   metadata=request["METADATA"])
 
         #$$$$$$$$$$#
 
-        request = {"PATH": "/NUMBER", "OPERATION": "UPDATE", "DATA": random.randint(0,1000), "METADATA": {}}
+        request = {"PATH": "/NUMBER", "OPERATION": "UPDATE",
+                   "DATA": random.randint(0,1000), "METADATA": {}}
 
-        CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], data = request["DATA"], metadata = request["METADATA"])
+        CLIENT_OBJECT.make_request(path=request["PATH"],
+                                   operation=request["OPERATION"],
+                                   data=request["DATA"],
+                                   metadata=request["METADATA"])
 
         time.sleep(1)
 
         request = {"PATH": "/NUMBER", "OPERATION": "READ", "METADATA": {}}
 
-        CLIENT_OBJECT.make_request(path = request["PATH"], operation = request["OPERATION"], metadata = request["METADATA"])
+        CLIENT_OBJECT.make_request(path=request["PATH"],
+                                   operation=request["OPERATION"],
+                                   metadata=request["METADATA"])
 
-CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345, "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U", responce_processor, offline_signal_processor=offline_sig_processor, online_signal_processor=online_sig_processor, recv_buffer=1024*1024*8, tranamission_buffer=1024*1024*2, timeout=60)
+CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345,
+                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              responce_processor,
+                              offline_signal_processor=offline_sig_processor,
+                              online_signal_processor=online_sig_processor,
+                              recv_buffer=1024*1024*8,
+                              tranamission_buffer=1024*1024*2,
+                              timeout=60)
 
 CLIENT_OBJECT.connect()
 
