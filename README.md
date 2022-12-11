@@ -101,9 +101,10 @@ def request_processor(data: dict, ip_port: tuple) -> dict :
             responce["DATA"] = NUMBER
             return responce
 
-SERVER_OBJECT = CYPHER_SERVER(12345,
-                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
-                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+SERVER_OBJECT = CYPHER_SERVER(host="",
+                              port=12345,
+                              encryption_key="2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              decryption_key="2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
                               request_handler=request_processor,
                               recv_buffer=1024*1024*8,
                               tranamission_buffer=1024*1024*2,
@@ -172,10 +173,11 @@ def request_maker() :
                                    operation=request["OPERATION"],
                                    metadata=request["METADATA"])
 
-CLIENT_OBJECT = CYPHER_CLIENT("127.0.0.1", 12345,
-                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
-                              "2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
-                              responce_processor,
+CLIENT_OBJECT = CYPHER_CLIENT(ip="127.0.0.1",
+                              port=12345,
+                              encryption_key="2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              decryption_key="2ZpK1CdQfm0s1EZ1SIhYfV7MHdJf8X3U",
+                              responce_handler=responce_processor,
                               offline_signal_processor=offline_sig_processor,
                               online_signal_processor=online_sig_processor,
                               recv_buffer=1024*1024*8,

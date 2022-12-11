@@ -14,7 +14,19 @@ import tracemalloc
 #$$$$$$$$$$#
 
 class CYPHER_SERVER() :
-    def __init__(self, port: int, encryption_key: str, decryption_key: str, request_handler: object, recv_buffer: int = 1024*1024*8, transmission_buffer: int = 1024*1024*2, timeout: int = 120,debug1: bool = False, debug2: bool = False) :
+    def __init__(self,
+                 host: str = "",
+                 port: int,
+                 encryption_key: str,
+                 decryption_key: str,
+                 request_handler: object,
+                 recv_buffer: int = 1024*1024*8,
+                 transmission_buffer: int = 1024*1024*2,
+                 timeout: int = 120,
+                 debug1: bool = False,
+                 debug2: bool = False) -> None :
+
+        self.HOST = host
 
         self.DEBUG1 = debug1
         self.DEBUG2 = debug2
@@ -51,27 +63,35 @@ class CYPHER_SERVER() :
 
         self.SERVER_SOCKET = socket.socket()
 
+        try :
+            self.SERVER_SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+            self.print_debug("[*] SOCKET IS IN REUSABLE STATE")
+
+        except : self.print_debug("[*] SOCKET IS NOT IN REUSABLE STATE")
+
         self.print_debug("[*] CREATED SERVER SOCKET", self.DEBUG1)
 
         self.print_debug("[*] BINDING SERVER SOCKET TO IP AND PORT", self.DEBUG1)
 
         try :
-            self.SERVER_SOCKET.bind(("", self.SERVER_PORT))
+            self.SERVER_SOCKET.bind((self.HOST, self.SERVER_PORT))
 
             self.print_debug("[*] BINDED SERVER SOCKET TO IP AND PORT", self.DEBUG1)
             self.print_debug("[*] SERVER OPEN ON PORT {0}".format(self.SERVER_PORT), self.DEBUG1)
 
         except Exception as EXCEPTION:
 
-            print(traceback.format_exc())
+            self.print_debug(traceback.format_exc(), self.DEBUG2)
 
             sys.exit()
 
         self.SERVER_SOCKET.listen(100)
         self.SERVER_SOCKET.settimeout(1)
 
-        self.SERVER_MAIN_THREAD = threading.Thread(target = self.server_mainloop , args = ())
-        self.CONNECTION_CLOSING_THREAD = threading.Thread(target = self.connection_object_destruction_loop ,args = ())
+        self.SERVER_MAIN_THREAD = threading.Thread(target=self.server_mainloop, args=())
+        self.CONNECTION_CLOSING_THREAD = threading.Thread(target=self.connection_object_destruction_loop,
+                                                          args=())
 
     def server_mainloop(self) -> None :
 
@@ -79,8 +99,7 @@ class CYPHER_SERVER() :
 
         while self.SERVER_STATUS :
             self.LOCK.acquire()
-            try :
-                self.add_connection_object(self.SERVER_SOCKET.accept())
+            try : self.add_connection_object(self.SERVER_SOCKET.accept())
             except Exception as EXCEPTION :
                 
                 self.print_debug("[*] NO CONNECTION RECIEVED", self.DEBUG2)
@@ -89,11 +108,20 @@ class CYPHER_SERVER() :
 
         self.SERVER_SOCKET.close()
 
-    def add_connection_object(self, sock_tuple: tuple) -> None :
+    def add_connection_object(self,
+                              sock_tuple: tuple) -> None :
 
         self.print_debug("[*] ADDING CONNECTION OBJECT", self.DEBUG2)
 
-        self.CLIENTS[sock_tuple[1]] = CYPHER_CONNECTION(sock_tuple, self.ENCRYPTION_KEY, self.DECRYPTION_KEY, self.REQUEST_HANDLER, self, self.RECV_BUFFER, self.TRANSMISSION_BUFFER, self.TIMEOUT, self.DEBUG2)
+        self.CLIENTS[sock_tuple[1]] = CYPHER_CONNECTION(sock_tuple,
+                                                        self.ENCRYPTION_KEY,
+                                                        self.DECRYPTION_KEY,
+                                                        self.REQUEST_HANDLER,
+                                                        self,
+                                                        self.RECV_BUFFER,
+                                                        self.TRANSMISSION_BUFFER,
+                                                        self.TIMEOUT,
+                                                        self.DEBUG2)
 
     def connection_object_destruction_loop(self) -> None :
         while self.SERVER_STATUS or (self.CLIENTS != {}) :
@@ -107,7 +135,8 @@ class CYPHER_SERVER() :
             GC.collect()
             GC.enable()
 
-    def destroy_connection_object(self, ip_port: tuple) -> None :
+    def destroy_connection_object(self,
+                                  ip_port: tuple) -> None :
         try :
             self.CLIENTS[ip_port].del_attributes()
             del self.CLIENTS[ip_port]
@@ -117,7 +146,7 @@ class CYPHER_SERVER() :
 
         except Exception as EXCEPTION :
 
-            #print(traceback.format_exc())
+            self.print_debug(traceback.format_exc(), self.DEBUG2)
 
             pass
 
@@ -131,7 +160,8 @@ class CYPHER_SERVER() :
     def stop_server(self) -> None :
         self.SERVER_STATUS = False
 
-    def add_connection_to_be_destroyed(self, ip_port: tuple) -> None :
+    def add_connection_to_be_destroyed(self,
+                                       ip_port: tuple) -> None :
         if ip_port not in self.CONNECTIONS_TO_BE_DISCONNECTED :
 
             self.print_debug("[*] ADDED {0} TO BE DESTROYED".format(ip_port), self.DEBUG2)
@@ -143,19 +173,28 @@ class CYPHER_SERVER() :
         self.print_debug("[*] ADDING ALL CONNECTIONS TO BE DESTROYED", self.DEBUG2)
 
         for _ in self.CLIENTS :
-            try :
-                self.CLIENTS[_].close_connection()
-            except :
-                pass
+            try : self.CLIENTS[_].close_connection()
+            except : pass
 
-    def print_debug(self, debug, debug_status) :
-        if debug_status :
-            print(debug)
+    def print_debug(self,
+                    debug: str,
+                    debug_status: bool) -> None :
+        if debug_status : print(debug)
 
 #$$$$$$$$$$#
 
 class CYPHER_CONNECTION() :
-    def __init__(self, connection: object, encryption_key: str, decryption_key: str, request_handler: object, server_object: object, recv_buffer: int,  transmission_buffer: int, timeout: int, debug: bool = False) :
+    def __init__(self,
+                 connection: object,
+                 encryption_key: str,
+                 decryption_key: str,
+                 request_handler: object,
+                 server_object: object,
+                 recv_buffer: int,
+                 transmission_buffer: int,
+                 timeout: int,
+                 debug: bool = False) -> None :
+
         self.DEBUG = debug
         self.SERVER_OBJECT = server_object
         self.CONNECTION = connection[0]
@@ -166,7 +205,8 @@ class CYPHER_CONNECTION() :
 
         self.CONNECTION_STATUS = True
 
-        self.print_debug("[#] INITIALISING CYPHER CONNECTION OBJECT FOR {0}".format(self.IP_PORT), self.DEBUG)
+        self.print_debug("[#] INITIALISING CYPHER CONNECTION OBJECT FOR {0}".format(self.IP_PORT),
+                         self.DEBUG)
 
         self.REQUEST_HANDLE_TRIGGER = request_handler
 
@@ -176,18 +216,23 @@ class CYPHER_CONNECTION() :
 
         self.CONNECTION_THREAD = threading.Thread(target=self.connection_loop, args=())
 
-        self.print_debug("[#] STARTING CONNECTION OBJECT THREAD FOR {0}".format(self.IP_PORT), self.DEBUG)
+        self.print_debug("[#] STARTING CONNECTION OBJECT THREAD FOR {0}".format(self.IP_PORT),
+                         self.DEBUG)
 
         self.CONNECTION_THREAD.start()
 
-    def create_encryption_decryption_objects(self, encryption_key: str, decryption_key: str) -> None :
+    def create_encryption_decryption_objects(self,
+                                             encryption_key: str,
+                                             decryption_key: str) -> None :
 
-        self.print_debug("[#] CREATING ENCRYPTION AND DECRYPTION OBJECTS FOR {0}".format(self.IP_PORT), self.DEBUG)
+        self.print_debug("[#] CREATING ENCRYPTION AND DECRYPTION OBJECTS FOR {0}".format(self.IP_PORT),
+                         self.DEBUG)
 
         self.ENCRYPTION_OBJECT = Fernet(base64.b64encode(encryption_key.encode("ascii")))
         self.DECRYPTION_OBJECT = Fernet(base64.b64encode(decryption_key.encode("ascii")))
 
-        self.print_debug("[#] CREATED ENCRYPTION AND DECRYPTION OBJECTS FOR {0}".format(self.IP_PORT), self.DEBUG)
+        self.print_debug("[#] CREATED ENCRYPTION AND DECRYPTION OBJECTS FOR {0}".format(self.IP_PORT),
+                         self.DEBUG)
 
     def connection_loop(self) -> None :
 
@@ -209,9 +254,11 @@ class CYPHER_CONNECTION() :
                 break
         self.SERVER_OBJECT.add_connection_to_be_destroyed(self.IP_PORT)
 
-    def process_request(self, client_resp: str) -> None :
+    def process_request(self,
+                        client_resp: str) -> None :
 
-        self.print_debug("[#] PROCESSING REQUEST FOR {0}".format(self.IP_PORT), self.DEBUG)
+        self.print_debug("[#] PROCESSING REQUEST FOR {0}".format(self.IP_PORT),
+                         self.DEBUG)
 
         client_resp_decrypted = self.DECRYPTION_OBJECT.decrypt(client_resp[0].encode(encoding="ascii")[:-1])
         client_responce_json = json.loads(client_resp_decrypted.decode(encoding="ascii"))
@@ -262,6 +309,7 @@ class CYPHER_CONNECTION() :
         try : del self.TRANSMISSION_BUFFER
         except Exception as EXCEPTION : print(EXCEPTION)
 
-    def print_debug(self, debug, debug_status) :
-        if debug_status :
-            print(debug)
+    def print_debug(self,
+                    debug: str,
+                    debug_status: bool) -> None :
+        if debug_status : print(debug)

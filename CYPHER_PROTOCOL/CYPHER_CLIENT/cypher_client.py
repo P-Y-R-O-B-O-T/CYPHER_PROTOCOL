@@ -12,7 +12,17 @@ import traceback
 #$$$$$$$$$$#
 
 class CYPHER_CLIENT() :
-    def __init__(self, ip: str, port: int, encryption_key: str, decryption_key: str, responce_handler: object, offline_signal_processor: object = None, online_signal_processor: object = None, recv_buffer: int = 1024*1024*8, transmission_buffer: int = 1024*1024*2, timeout: int = 60) :
+    def __init__(self,
+                 ip: str,
+                 port: int,
+                 encryption_key: str,
+                 decryption_key: str,
+                 responce_handler: object,
+                 offline_signal_processor: object = None,
+                 online_signal_processor: object = None,
+                 recv_buffer: int = 1024*1024*8,
+                 transmission_buffer: int = 1024*1024*2,
+                 timeout: int = 60) -> None :
 
         #print("[*] INITIALISING CYPHER CLIENT")
 
@@ -69,8 +79,7 @@ class CYPHER_CLIENT() :
                     #print(EXCEPTION)
 
                     pass
-            else :
-                break
+            else : break
             time.sleep(1)
 
         GC.collect()
@@ -84,7 +93,11 @@ class CYPHER_CLIENT() :
 
             pass
 
-    def make_request(self, path: str = "/", operation: str = "NONE", data: dict = {}, metadata: dict = {}) -> None :
+    def make_request(self,
+                     path: str = "/",
+                     operation: str = "NONE",
+                     data: dict = {},
+                     metadata: dict = {}) -> None :
         data_ = {}
         data_["PATH"] = path
         data_["OPERATION"] = operation
@@ -139,11 +152,12 @@ class CYPHER_CLIENT() :
 
             break
 
-    def handle_responce(self, server_resp: str) -> None :
+    def handle_responce(self,
+                        server_resp: str) -> None :
         try :
             server_resp_decrypted = self.DECRYPTION_OBJECT.decrypt(server_resp[0].encode(encoding="ascii")[:-1])
-        except Exception as EXCEPTION :
-            return
+        except Exception as EXCEPTION : return
+
         server_responce_json = json.loads(server_resp_decrypted.decode(encoding="ascii"))
         self.RESPONCE_HANDLE_TRIGGER(server_responce_json)
 
