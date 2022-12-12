@@ -22,6 +22,7 @@ class FTP_CLIENT(CYPHER_CLIENT) :
         self.FIRST_FETCH = True
         self.CHAR_POSITION = 0
         self.FILES_TO_FETCH = []
+        self.WRITE = True
 
         self.DOWNLOAD_PATH = ""
 
@@ -33,21 +34,19 @@ class FTP_CLIENT(CYPHER_CLIENT) :
             if type(responce["DATA"]) is list : self.FILES_TO_FETCH = responce["DATA"]
             else :
                 self.process_file_data(responce)
-                if self.TRIGGER != None : self.TRIGGER("READ",
-                                                       event_info={"PATH": responce["PATH"],
-                                                                   "METADATA": responce["METADATA"]})
+                if self.TRIGGER != None : self.TRIGGER(responce)
         elif responce["OPERATION"] == "WRITE" :
-            if self.TRIGGER != None : self.TRIGGER("WRITE", event_info=responce)
+            if self.TRIGGER != None : self.TRIGGER(responce)
         elif responce["OPERATION"] == "LISTITEMS" :
-            if self.TRIGGER != None : self.TRIGGER("LISTITEMS", event_info=responce)
+            if self.TRIGGER != None : self.TRIGGER(responce)
         elif responce["OPERATION"] == "DELETE" :
-            if self.TRIGGER != None : self.TRIGGER("DELETE", event_info=responce)
+            if self.TRIGGER != None : self.TRIGGER(responce)
 
     def process_file_data(self,
                           responce: dict) -> None :
         if os.path.isfile(os.path.join(self.DOWNLOAD_PATH, responce["PATH"])) :
             if (responce["DATA"] != "") or (responce["DATA"] != "b''") :
-                self.write_to_file(responce)
+                if self.WRITE : self.write_to_file(responce)
                 self.CHAR_POSITION += self.RECV_CHUNK_SIZE
             if (responce["DATA"] == "") or (responce["DATA"] == "b''") :
                 self.FILES_TO_FETCH.pop(0)
@@ -86,10 +85,12 @@ class FTP_CLIENT(CYPHER_CLIENT) :
 
     def fetch_file_s(self,
                      path: str,
-                     download_path: str) -> None :
+                     download_path: str,
+                     write: bool = True) -> None :
+        self.WRITE = write
         self.DOWNLOAD_PATH = download_path
         self.make_request(path=path, operation="READ")
-        self.create_directory()
+        if self.WRITE : self.create_directory()
 
         while self.FILES_TO_FETCH != [] :
             self.make_request(path=self.FILES_TO_FETCH[0],
