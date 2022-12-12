@@ -15,8 +15,8 @@ import tracemalloc
 
 class CYPHER_SERVER() :
     def __init__(self,
-                 host: str = "",
                  port: int,
+                 host: str = "",
                  encryption_key: str,
                  decryption_key: str,
                  request_handler: object,

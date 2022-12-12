@@ -63,8 +63,6 @@ class FTP_CLIENT(CYPHER_CLIENT) :
                         dir_file_sep_position = __
                         break
                 if not os.path.isdir(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position])) :
-                    print(_[:dir_file_sep_position])
-                    print(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position]))
                     os.makedirs(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position]))
             self.create_file(_)
 
@@ -102,13 +100,11 @@ class FTP_CLIENT(CYPHER_CLIENT) :
                       path: str,
                       server_path: str) -> None :
         dir_list = []
-        print(path)
         if os.path.isdir(path) :
             for addrs, dirs, files in os.walk(path) :
                 for file in files :
                     dir_list.append(os.path.join(addrs, file))
         elif os.path.isfile(path) : dir_list.append(path)
-        print(dir_list)
 
         for _ in dir_list :
             file_obj = open(os.path.join("", _), "rb")
