@@ -16,10 +16,10 @@ import tracemalloc
 class CYPHER_SERVER() :
     def __init__(self,
                  port: int,
-                 host: str = "",
                  encryption_key: str,
                  decryption_key: str,
                  request_handler: object,
+                 host: str = "",
                  recv_buffer: int = 1024*1024*8,
                  transmission_buffer: int = 1024*1024*2,
                  timeout: int = 120,
@@ -66,9 +66,9 @@ class CYPHER_SERVER() :
         try :
             self.SERVER_SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-            self.print_debug("[*] SOCKET IS IN REUSABLE STATE")
+            self.print_debug("[*] SOCKET IS IN REUSABLE STATE", self.DEBUG1)
 
-        except : self.print_debug("[*] SOCKET IS NOT IN REUSABLE STATE")
+        except : self.print_debug("[*] SOCKET IS NOT IN REUSABLE STATE", self.DEBUG1)
 
         self.print_debug("[*] CREATED SERVER SOCKET", self.DEBUG1)
 
