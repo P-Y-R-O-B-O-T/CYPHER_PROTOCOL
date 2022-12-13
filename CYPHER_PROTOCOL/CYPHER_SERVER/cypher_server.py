@@ -25,44 +25,93 @@ class CYPHER_SERVER() :
                  timeout: int = 120,
                  debug1: bool = False,
                  debug2: bool = False) -> None :
+        """
+        port :                port at which the server will be open
+
+        encryption_key :      key to encrypt responce that will be sent to client
+
+        decryption_key :      key to decrypt request coming from client
+
+        request_handler :     user defined function to handle request
+
+        host :                loopback interface [at what loopback interface
+                              the service will be available] default value is ""
+
+        recv_buffer :         bytes recieved in one recv() call;
+                              max limit depends on system
+
+        transmission_buffer : bytes transmitted/sent in one send()/sendall() call
+                              max limit currently is 1024*1024*1 as limited by python
+
+        timeout :             socket recv() timeout; if this occur
+                              the server disconnects the client
+
+        debug1 :              print level 1 debug statements; default is False
+
+        debug2 :              print level 2 debug statements; default is False
+
+        """
 
         self.HOST = host
-
+        # DEBUG FLAGS
         self.DEBUG1 = debug1
         self.DEBUG2 = debug2
-
+        # self.RECV_BUFFER IS LIMIT OF BYTES THAT CAN
+        # BE RECIEVED IN ONE SINGLE connection.recv() CALL
         self.RECV_BUFFER = recv_buffer
+        # self.TRANSMISSION_BUFFER IS LIMIT OF BYTES THAT CAN
+        # BE TRANSMITTED IN ONE SINGLE connection.send() CALL
+        #
+        # CURRENTLY WE DON'T RECOMMEND
+        # TO PUT THIS ABOVE 1024*1024*1 AS
+        # THERE IS PACKET LOSS DUE TO BUG
+        # IN PYTHON SOCKET LIBRARY ITSELF
         self.TRANSMISSION_BUFFER = transmission_buffer
-
+        # SOCKET TIMEOUT LIMIT
         self.TIMEOUT = timeout
 
         self.print_debug("[*] INITIALISING SERVER", self.DEBUG1)
 
+        # GARGACE COLLECTION SETTING
         GC.set_threshold(0,0,0)
         GC.enable()
 
+        # SERVER IS HANDLING MANY THINGS IN PARALLEL
+        # SO NEED A LOCK TO AVOID RACE CONDITIONS
+        # WHILE ACCESSING self.CLIENTS AND
+        # self.CLIENTS_TO_BE_DISCONNECTED
         self.LOCK = threading.Lock()
+        # SERVER RUNS UNTIL SERVER FLAG IS TRUE
         self.SERVER_STATUS = True
         self.SERVER_PORT = port
+        # self.CLIENTS CONTAINS ALL CLIENT_CONNECTION
+        # OBJECTS IN FORMAT (IP, PORT) : CYPHER_CONNECTION OBJECT
         self.CLIENTS = {}
-
+        # self.REQUEST_HANDLER IS REFERENCE FOR
+        # CALLING USER DEFINED FUNCTION FOR
+        # PROCESSING/HANDLING REQUEST
+        #
+        # USER DEFINES FUNCTION AND PROCESSES REQUEST ACCORDINGLY
         self.REQUEST_HANDLER = request_handler
 
         self.print_debug("[*] CREATING ENCRYPTION AND DECRYPTION OBJECTS", self.DEBUG1)
 
         self.ENCRYPTION_KEY = encryption_key
         self.DECRYPTION_KEY = decryption_key
-        self.ENCRYPTION_OBJECT = Fernet(base64.b64encode(self.ENCRYPTION_KEY.encode("ascii")))
-        self.DECRYPTION_OBJECT = Fernet(base64.b64encode(self.DECRYPTION_KEY.encode("ascii")))
 
         self.print_debug("[*] CREATED ENCRYPTION AND DECRYPTION OBJECTS", self.DEBUG1)
 
+        # ONCE SOME ERROR IS ENCOUNTER OR TIMEOUT FACED
+        # OR CLIENT CLOSED CONNECTION [PEER CLOSED CONNECTION]
+        # THEN THEIR (IP, PORT) ARE PUT HERE THEN CLOSED AND DELETED BY THE THREAD
         self.CONNECTIONS_TO_BE_DISCONNECTED = []
 
         self.print_debug("[*] CREATING SERVER SOCKET", self.DEBUG1)
 
+        # INITIALISING SOCKET
         self.SERVER_SOCKET = socket.socket()
 
+        # TRYING TO PUT SOCKET IN REUSABLE STATE
         try :
             self.SERVER_SOCKET.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -74,6 +123,11 @@ class CYPHER_SERVER() :
 
         self.print_debug("[*] BINDING SERVER SOCKET TO IP AND PORT", self.DEBUG1)
 
+        # TRY
+        #     BIND SOCKET TO HOST[LOOPBACK INTERFACE]
+        # EXCEPT EXCEPTION OCCUR
+        #     PRINT TRACEBACK
+        #     EXIT PROGRAM
         try :
             self.SERVER_SOCKET.bind((self.HOST, self.SERVER_PORT))
 
@@ -81,14 +135,18 @@ class CYPHER_SERVER() :
             self.print_debug("[*] SERVER OPEN ON PORT {0}".format(self.SERVER_PORT), self.DEBUG1)
 
         except Exception as EXCEPTION:
-
             self.print_debug(traceback.format_exc(), self.DEBUG2)
-
             sys.exit()
 
-        self.SERVER_SOCKET.listen(100)
+        # LISTENING TO 1000 SOCKETS AT A TIME
+        # CAN KEEP 1000 SOCKETS IN BUFFER BEFORE REFUSING A NEW CONNECTION
+        self.SERVER_SOCKET.listen(1000)
+        # SERVER SOCKET TIMEOUT
         self.SERVER_SOCKET.settimeout(1)
 
+        # CREATING THREADS FOR SERVER ONE IS MAINTHREAD WHICH ACCEPTS NEW CONNECTIONS
+        # AND ONE IS CONNECTION CLOSING THREAD WHICH CLOSES CONNECTIONS AND
+        # CLEAR MEMORY BY DELETING THEM FROM self.CONNECTIONS
         self.SERVER_MAIN_THREAD = threading.Thread(target=self.server_mainloop, args=())
         self.CONNECTION_CLOSING_THREAD = threading.Thread(target=self.connection_object_destruction_loop,
                                                           args=())
@@ -97,6 +155,14 @@ class CYPHER_SERVER() :
 
         self.print_debug("[*] INSIDE SERVER MAIN LOOP", self.DEBUG2)
 
+        # WHILE self.SERVER_STATUS FLAG
+        #     AQUIRE LOCK OVER self.CONNECTIONS
+        #     TRY
+        #         RECV NEW CONNECTION AND CALL
+        #     EXCEPT EXCEPTION OCCUR
+        #         PRINT DEBUG LEVEL 2
+        #     RELEASE LOCK
+        # IF SERVER_STATUS FLAG IS SET TO FALSE THE LOOP STOPS AND THE SERVER ALSO STOPS
         while self.SERVER_STATUS :
             self.LOCK.acquire()
             try : self.add_connection_object(self.SERVER_SOCKET.accept())
@@ -110,6 +176,11 @@ class CYPHER_SERVER() :
 
     def add_connection_object(self,
                               sock_tuple: tuple) -> None :
+        # RECIEVES (CONNECTION, (IP, PORT))
+        # THAN CREATES CYPHER_CONNECTION OBJECT
+        # IN self.CLIENTS BY PASSING sock_tuple
+        # AND OTHER VALID PARAMETERS
+        # self.CLIENTS[sock_tuple[1]]
 
         self.print_debug("[*] ADDING CONNECTION OBJECT", self.DEBUG2)
 
@@ -124,6 +195,7 @@ class CYPHER_SERVER() :
                                                         self.DEBUG2)
 
     def connection_object_destruction_loop(self) -> None :
+
         while self.SERVER_STATUS or (self.CLIENTS != {}) :
             time.sleep(1)
             for _ in self.CONNECTIONS_TO_BE_DISCONNECTED :
