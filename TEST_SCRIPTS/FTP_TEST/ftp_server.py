@@ -44,7 +44,7 @@ DEBUG1 = True
 DEBUG2 = True
 
 # CREATING SERVER OBJECT
-SERVER = FTP_SERVER(path="FILEDATA",
+SERVER = FTP_SERVER(path=PATH,
                     recv_chunk_size=RECV_CHUNK_SIZE,
                     transmission_chunk_size=TRANSMISSION_CHUNK_SIZE,
                     port=12321,
