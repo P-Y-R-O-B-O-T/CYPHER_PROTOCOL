@@ -18,9 +18,9 @@ class FTP_SERVER(CYPHER_SERVER) :
 
         self.PATH = path
 
-        #while True :
-        #    if self.PATH[-1] == "/" : self.PATH = self.PATH[:-1]
-        #    else : break
+        while True :
+            if self.PATH[-1] == "/" : self.PATH = self.PATH[:-1]
+            else : break
             
         if not os.path.isdir(self.PATH) :
             try : os.makedirs(self.PATH)
