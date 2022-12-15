@@ -195,7 +195,6 @@ class CYPHER_SERVER() :
                                                         self.DEBUG2)
 
     def connection_object_destruction_loop(self) -> None :
-
         while self.SERVER_STATUS or (self.CLIENTS != {}) :
             time.sleep(1)
             for _ in self.CONNECTIONS_TO_BE_DISCONNECTED :
