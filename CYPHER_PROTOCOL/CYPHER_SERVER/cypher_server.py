@@ -33,6 +33,7 @@ class CYPHER_SERVER() :
         decryption_key :      key to decrypt request coming from client
 
         request_handler :     user defined function to handle request
+                              takes 2 arguments, data: dictionary and ip_port: tuple; return dictionary
 
         host :                loopback interface [at what loopback interface
                               the service will be available] default value is ""
@@ -195,6 +196,10 @@ class CYPHER_SERVER() :
                                                         self.DEBUG2)
 
     def connection_object_destruction_loop(self) -> None :
+        # WHILE self.SERVER_STATUS OR self.CLIENTS NOT EMPTY
+        #     WAIT 1
+        #     FOR CLIENT IN self.CONNECTIONS_TO_BE_DISCONNECTED
+        #         CALL self.destroy_connection_object TO DESTROY CONNECTION OBJECT
         while self.SERVER_STATUS or (self.CLIENTS != {}) :
             time.sleep(1)
             for _ in self.CONNECTIONS_TO_BE_DISCONNECTED :
@@ -208,6 +213,11 @@ class CYPHER_SERVER() :
 
     def destroy_connection_object(self,
                                   ip_port: tuple) -> None :
+        # TRY
+        #     CALL CONNECTION OBJECT'S del_attributes TO DELETE DATA MEMBERS OF CONNECTION OBJECT
+        #     REMOVE CONNECTION ID FROM self.CONNECTIONS_TO_BE_DISCONNECTED
+        # EXCEPT EXCEPTION OCCUR
+        #     PASS
         try :
             self.CLIENTS[ip_port].del_attributes()
             del self.CLIENTS[ip_port]
@@ -222,17 +232,28 @@ class CYPHER_SERVER() :
             pass
 
     def start_server(self) -> None :
-
+        """
+        call it to start the server
+        """
+        # START THE self.SERVER_MAIN_THREAD AND self.CONNECTION_CLOSING_THREAD
         self.print_debug("[*] STARTING SERVER THREADS", self.DEBUG1)
 
         self.SERVER_MAIN_THREAD.start()
         self.CONNECTION_CLOSING_THREAD.start()
 
     def stop_server(self) -> None :
+        """
+        call it to stop the server
+        """
+        # STOP SERVER BY SETTING self.SERVER_STATUS FLAG TO FALSE
         self.SERVER_STATUS = False
 
     def add_connection_to_be_destroyed(self,
                                        ip_port: tuple) -> None :
+        # CALLED BY CONNECTION_OBJECT TO REQUEST FOR CLOSING OF CONNECTION
+        #
+        # IF ip_port NOT IN self.CONNECTIONS_TO_BE_DISCONNECTED
+        #     APPEND ip_port TO self.CONNECTIONS_TO_BE_DISCONNECTED
         if ip_port not in self.CONNECTIONS_TO_BE_DISCONNECTED :
 
             self.print_debug("[*] ADDED {0} TO BE DESTROYED".format(ip_port), self.DEBUG2)
@@ -240,6 +261,11 @@ class CYPHER_SERVER() :
             self.CONNECTIONS_TO_BE_DISCONNECTED.append(ip_port)
 
     def destroy_all_connections(self) -> None :
+        """
+        call it to destroy all active connections
+        """
+        # CALLING CONNECTION OBJECT'S close_connection
+        # FOR ALL ACTIVE CONNECTIONS TO CLOSE THEM
 
         self.print_debug("[*] ADDING ALL CONNECTIONS TO BE DESTROYED", self.DEBUG2)
 
@@ -267,34 +293,53 @@ class CYPHER_CONNECTION() :
                  debug: bool = False) -> None :
 
         self.DEBUG = debug
+        # SERVER REFERENCE FOR CALLING METHOD TO CLOSE CONNECTION
         self.SERVER_OBJECT = server_object
+        # RECIEVED CONNECTION FOR CLIENT
+        # THIS WILL BE USED TO EXCHANGE DATA
         self.CONNECTION = connection[0]
+        # IP AND PORT OF CONNECTION
         self.IP_PORT = connection[1]
 
+        # BUFFER SIZES FOR SENDING MESSAGES
         self.RECV_BUFFER = recv_buffer
         self.TRANSMISSION_BUFFER = transmission_buffer
 
+        # self.CONNECTION_STATUS IS FLAG
+        # TO KEEP CONNECTION ALIVE
+        # IF THIS BECOMES FALSE THEN CONNECTION IS CLOSED
+        # BY ADDING IP_OPRT TO SERVER'S CLIENTS_TO_BE_DISCONNECTED
         self.CONNECTION_STATUS = True
 
         self.print_debug("[#] INITIALISING CYPHER CONNECTION OBJECT FOR {0}".format(self.IP_PORT),
                          self.DEBUG)
 
+        # CALLED WHEN RECIEVE A REQUEST
+        # TAKES 2 ARGUMENTS, REQUEST AND RESPONCE
         self.REQUEST_HANDLE_TRIGGER = request_handler
 
+        # CREATING FERNET OBJECTS TO ENCRYPT AND DECRYPT MESSAGES
         self.create_encryption_decryption_objects(encryption_key, decryption_key)
 
+        # CONNECTION TIMEOUT, TIMEOUT OCCURS;
+        # CONNECTION IS CLOSED BY ADDING IP_PORT
+        # TO SERVER'S CLIENTS_TO_BE_DISCONNECTED
         self.CONNECTION.settimeout(timeout)
 
+        # THERAD FOR RECIEVING REQUEST FROM CLIENT
         self.CONNECTION_THREAD = threading.Thread(target=self.connection_loop, args=())
 
         self.print_debug("[#] STARTING CONNECTION OBJECT THREAD FOR {0}".format(self.IP_PORT),
                          self.DEBUG)
 
+        # START RECIEVING MESSAGES
         self.CONNECTION_THREAD.start()
 
     def create_encryption_decryption_objects(self,
                                              encryption_key: str,
                                              decryption_key: str) -> None :
+        # CREATING DECRYPTION AND ENCRYPTION OBJECTS
+        # TO ENCRYPT RESPONCE AND DECRYPT REQUEST
 
         self.print_debug("[#] CREATING ENCRYPTION AND DECRYPTION OBJECTS FOR {0}".format(self.IP_PORT),
                          self.DEBUG)
@@ -309,7 +354,23 @@ class CYPHER_CONNECTION() :
 
         self.print_debug("[#] CONNECTION LOOP", self.DEBUG)
 
+        # STORAGE FOR SERVER RESPONCE
+        # HERE IT IS LIST AS STRINGS ARE IMMUTABLE
+        # BUT LIST ARE MUTABLE
+        # WE CAN PASS LISTS AS REFERENCE
         client_resp = [""]
+
+        # WHILE self.CONNECTION_RESPONCE
+        #     TRY
+        #         RECIEVE IN CHUNKS AS SPECIFIED BY USER
+        #         CONCAT TO client_resp[0]
+        #         IF CHR(0) IN client_resp[0]
+        #             CALL self.process_request TO PROCESS REQUEST
+        #         IF EMPTY RESPONCE
+        #             BREAK TO CLOSE CONNECTION
+        #     EXCEPT EXCEPTION OCCURS
+        #         BREAK
+        # CALL self.SERVER_OBJECT.add_connection_to_be_destroyed TO CLOSE CONNECTION
         while self.CONNECTION_STATUS :
             try :
                 temp_resp = self.CONNECTION.recv(self.RECV_BUFFER).decode("utf-8")
@@ -327,6 +388,12 @@ class CYPHER_CONNECTION() :
 
     def process_request(self,
                         client_resp: str) -> None :
+        # DECRYPT REQUEST
+        # CONVERT JSON TO PYTHONIC STRUCTURES
+        # SET client_resP[0] TO ""
+        # CALL self.REQUEST_HANDLE_TRIGGER TO PROCESS REQUEST
+        # CONVERT DATA RETURNED BY self.REQUEST_HANDLER_TRIGGER TO JSON FORMAT AND THEN ENCRYPT IT
+        # CONVERT TO BYTES AND SEND IN BUFFERS AS SPECIFIED BY USER
 
         self.print_debug("[#] PROCESSING REQUEST FOR {0}".format(self.IP_PORT),
                          self.DEBUG)
@@ -353,6 +420,8 @@ class CYPHER_CONNECTION() :
         self.CONNECTION_STATUS = False
 
     def del_attributes(self) -> None :
+        # CLOSE CONNECTION SAFELY AND WAIT FOR CONNECTION THREAD TO COMPLETE
+        # DELETE ALL DATA MEMBERS
 
         self.print_debug("[#] DELETING ATTRIBUTES OF {0}".format(self.IP_PORT), self.DEBUG)
 

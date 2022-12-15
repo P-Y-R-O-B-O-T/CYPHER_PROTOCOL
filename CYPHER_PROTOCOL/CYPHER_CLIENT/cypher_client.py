@@ -28,9 +28,9 @@ class CYPHER_CLIENT() :
 
         port :                     port at which the host is serving or the service is available
 
-        encryption_key :           key to encrypt request
+        encryption_key :           key to encrypt request that will be sent to server
 
-        decryption_key :           key to decrypt responce
+        decryption_key :           key to decrypt responce coming from server
 
         responce_handler :         user defined function to handle responce
                                    takes only one argument which is dictionary request_handler(responce: dict)
