@@ -157,10 +157,8 @@ class CYPHER_CLIENT() :
         GC.collect()
         GC.enable()
 
-        self.signalize_online()
-
         if self.CONNECTED :
-            pass
+            self.signalize_online()
 
     def make_request(self,
                      path: str = "/",
@@ -246,7 +244,10 @@ class CYPHER_CLIENT() :
             # IF RESPONCE RECIEVED PROPERLY
             #     CALL self.handle_responce
             #     BREAK OUT OF LOOP
-            self.handle_responce(server_resp)
+            self.handle_responce(server_resp) 
+            """
+            # error here violation of limiting of number of connections per second to solve this edit the handle_responce method
+            """
 
             break
 
