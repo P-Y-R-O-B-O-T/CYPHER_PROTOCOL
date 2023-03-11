@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cypher_protocol_P-Y-R-O-B-O-T"
-version = "1.4.1"
+version = "1.5.0"
 description = "A COMMUNICATION PROTOCOL FOR COMPUTERS TO COMMUNICATE THROUGH A SAFE CHANNEL"
 readme = "README.md"
 authors = [{name =  "KUSHAL", email = "NONE@NONE.com"}]

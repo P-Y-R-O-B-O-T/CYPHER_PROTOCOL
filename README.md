@@ -190,3 +190,7 @@ THREAD = threading.Thread(target=request_maker, args=())
 
 THREAD.start()
 ```
+
+## FTP SERVER & CLIENT
+* Now FTP has also been implemented using CYPHER, the usage is similar to normal CYPHER implementations.
+* Refer TEST_SCRIPTS/FTP_TEST for usage of FTP implementation.
