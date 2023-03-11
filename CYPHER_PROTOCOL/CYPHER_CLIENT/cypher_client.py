@@ -245,10 +245,6 @@ class CYPHER_CLIENT() :
             #     CALL self.handle_responce
             #     BREAK OUT OF LOOP
             self.handle_responce(server_resp) 
-            """
-            # error here violation of limiting of number of connections per second to solve this edit the handle_responce method
-            """
-
             break
 
     def handle_responce(self,
