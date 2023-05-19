@@ -44,6 +44,20 @@ class FTP_CLIENT(CYPHER_CLIENT) :
 
     def process_file_data(self,
                           responce: dict) -> None :
+        split_path = self.FETCH_FILE_BASE_PATH.split("/")
+        while "" in split_path :
+            split_path.remove("")
+        split_file_path = responce["PATH"].split("/")
+        while "" in split_file_path :
+            split_file_path.remove("")
+        for _ in split_path[:-1] :
+            if _ in split_file_path :
+                split_file_path.remove(_)
+        print(split_path)
+        print(split_file_path)
+        print("/".join(split_file_path))
+        print()
+        responce["PATH"] = "/".join(split_file_path)
         if os.path.isfile(os.path.join(self.DOWNLOAD_PATH, responce["PATH"])) :
             if (responce["DATA"] != "") or (responce["DATA"] != "b''") :
                 if self.WRITE : self.write_to_file(responce)
@@ -54,16 +68,40 @@ class FTP_CLIENT(CYPHER_CLIENT) :
 
     def create_directory(self) -> None :
         for _ in self.FILES_TO_FETCH :
-            if not os.path.isfile(os.path.join(self.DOWNLOAD_PATH, _)) :
+            split_path = self.FETCH_FILE_BASE_PATH.split("/")
+            while "" in split_path :
+                split_path.remove("")
+            split_file_path = _.split("/")
+            while "" in split_file_path :
+                split_file_path.remove("/")
+
+            for _ in split_path[:-1] :
+                if _ in split_file_path :
+                    split_file_path.remove(_)
+
+            new_path = "/".join(split_file_path)
+
+            if not os.path.isfile(os.path.join(self.DOWNLOAD_PATH, new_path)) :
                 dir_file_sep_position = 0
-                _ = "./"+_
-                for __ in range(len(_)-1, -1,-1) :
-                    if _[__] == "/" :
+                new_path = "./"+new_path
+                for __ in range(len(new_path)-1, -1,-1) :
+                    if new_path[__] == "/" :
                         dir_file_sep_position = __
                         break
-                if not os.path.isdir(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position])) :
-                    os.makedirs(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position]))
-            self.create_file(_)
+                if not os.path.isdir(os.path.join(self.DOWNLOAD_PATH, new_path[:dir_file_sep_position])) :
+                    os.makedirs(os.path.join(self.DOWNLOAD_PATH, new_path[:dir_file_sep_position]))
+            self.create_file(new_path)
+
+            #if not os.path.isfile(os.path.join(self.DOWNLOAD_PATH, _)) :
+            #    dir_file_sep_position = 0
+            #    _ = "./"+_
+            #    for __ in range(len(_)-1, -1,-1) :
+            #        if _[__] == "/" :
+            #            dir_file_sep_position = __
+            #            break
+            #    if not os.path.isdir(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position])) :
+            #        os.makedirs(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position]))
+            #self.create_file(_)
 
     def create_file(self,
                     file: str) -> None :
@@ -89,8 +127,12 @@ class FTP_CLIENT(CYPHER_CLIENT) :
                      write: bool = True) -> None :
         self.WRITE = write
         self.DOWNLOAD_PATH = download_path
+
+        self.FETCH_FILE_BASE_PATH = path
         self.make_request(path=path, operation="READ")
         if self.WRITE : self.create_directory()
+
+        #self.FETCH_FILE_BASE_PATH = path
 
         while self.FILES_TO_FETCH != [] :
             self.make_request(path=self.FILES_TO_FETCH[0],
@@ -114,7 +156,17 @@ class FTP_CLIENT(CYPHER_CLIENT) :
                 try : file_size = os.path.getsize(_)
                 except : break
 
-                self.make_request(path=os.path.join(server_path, _),
+                split_path = path.split("/")
+                while "" in split_path :
+                    split_path.remove("")
+
+                split_file_path = _.split("/")
+
+                for _ in split_path[:-1] :
+                    if _ in split_file_path :
+                        split_file_path.remove(_)
+
+                self.make_request(path=os.path.join(server_path, "/".join(split_file_path)),
                                   operation="WRITE", data=file_data,
                                   metadata={"FILESIZE": file_size,
                                             "UPLOADED": file_obj.tell()})
