@@ -92,17 +92,6 @@ class FTP_CLIENT(CYPHER_CLIENT) :
                     os.makedirs(os.path.join(self.DOWNLOAD_PATH, new_path[:dir_file_sep_position]))
             self.create_file(new_path)
 
-            #if not os.path.isfile(os.path.join(self.DOWNLOAD_PATH, _)) :
-            #    dir_file_sep_position = 0
-            #    _ = "./"+_
-            #    for __ in range(len(_)-1, -1,-1) :
-            #        if _[__] == "/" :
-            #            dir_file_sep_position = __
-            #            break
-            #    if not os.path.isdir(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position])) :
-            #        os.makedirs(os.path.join(self.DOWNLOAD_PATH, _[:dir_file_sep_position]))
-            #self.create_file(_)
-
     def create_file(self,
                     file: str) -> None :
         file_obj = open(os.path.join(self.DOWNLOAD_PATH, file), "wb")
